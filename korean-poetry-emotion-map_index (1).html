@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>한국 현대시 15선 감정 분석 연구실</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body class="min-h-screen flex flex-col relative overflow-x-hidden">
+  <!-- 3D Seasonal & Poetic Ambient Particle Canvas -->
+  <canvas id="ambient-particles-canvas"></canvas>
+
+  <!-- Vivid Photographic Landscape Backdrop -->
+  <img id="poem-bg-photo" src="./assets/bg/spring.jpg" alt="시 배경 풍경" />
+  <div class="poem-bg-scrim"></div>
+  <!-- Header (전통 기와집 지붕 & 대들보) -->
+  <header class="sticky top-0 z-30 shadow-lg">
+    <!-- Giwa Roof Ridge & Tile Ribs -->
+    <div class="giwa-roof-bg relative overflow-hidden">
+      <div class="h-3 bg-gradient-to-b from-[#171514] to-[#2B2826] border-b border-[#46413D]"></div>
+      <!-- Scalloped Sumaksae (수막새) roof-end tiles SVG -->
+      <svg class="w-full h-5 block" preserveAspectRatio="none" viewBox="0 0 1200 20" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="giwa-eaves" x="0" y="0" width="24" height="20" patternUnits="userSpaceOnUse">
+            <rect width="24" height="10" fill="#262423" />
+            <circle cx="12" cy="11" r="8.5" fill="#1C1A19" stroke="#524B45" stroke-width="1.2" />
+            <circle cx="12" cy="11" r="4" fill="#36322F" />
+          </pattern>
+        </defs>
+        <rect width="1200" height="20" fill="url(#giwa-eaves)" />
+      </svg>
+    </div>
+
+    <!-- Wooden Beam & Pavilion Body -->
+    <div class="hanok-beam">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-lg seal-stamp flex items-center justify-center font-serif-kr font-bold text-xl tracking-tight shrink-0">
+            詩
+          </div>
+          <div>
+            <h1 class="text-lg sm:text-xl font-bold tracking-wide text-[#FAF5EB] font-serif-kr">
+              한국 현대시 15선 감정 분석 연구실
+            </h1>
+            <p class="text-xs text-[#DFD2BC]">
+              1920~40년대 대표 시인 11인 · 6대 정서 축 계량 분석 및 실시간 시어 감성 판독
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 self-start md:self-auto">
+        <button id="ambient-toggle-btn" class="px-3 py-1.5 rounded-xl text-xs font-medium bg-[#34231A] text-[#F5E6C8] border border-[#B08D57]/50 hover:bg-[#4A3123] transition flex items-center gap-1.5" title="계절·정서 입체 효과 켜기/끄기">
+          <span id="ambient-icon">🌸</span>
+          <span id="ambient-label">봄 꽃잎 흩날림</span>
+        </button>
+      <!-- Main View Tabs (창호 문살 느낌) -->
+        <nav class="flex flex-wrap items-center gap-1.5 bg-[#261811]/85 border border-[#8A6248]/60 p-1 rounded-xl self-start md:self-auto" aria-label="분석 모드">
+          <button id="tab-inspector" data-tab="inspector" class="tab-btn px-3.5 py-1.5 rounded-lg text-sm font-medium transition bg-[#FAF5EB] text-[#241E1B] shadow-sm">
+            개별 시 분석
+          </button>
+          <button id="tab-corpus" data-tab="corpus" class="tab-btn px-3.5 py-1.5 rounded-lg text-sm font-medium transition text-[#E2D8C5] hover:text-white">
+            15편 종합 비교
+          </button>
+          <button id="tab-analyzer" data-tab="analyzer" class="tab-btn px-3.5 py-1.5 rounded-lg text-sm font-medium transition text-[#E2D8C5] hover:text-white">
+            내 시 분석하기
+          </button>
+          <button id="tab-rubric" data-tab="rubric" class="tab-btn px-3.5 py-1.5 rounded-lg text-sm font-medium transition text-[#E2D8C5] hover:text-white">
+            범주·사전·검증
+          </button>
+        </nav>
+      </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 lg:px-10 py-7 hanok-main-frame">
+
+    <!-- ==================== TAB 1: POEM INSPECTOR ==================== -->
+    <section id="view-inspector" class="space-y-6">
+      <!-- Filter Bar -->
+      <div class="palace-card rounded-2xl p-4 shadow-sm space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div>
+            <label for="search-input" class="block text-xs font-medium text-stone-500 mb-1">작품·시어 검색</label>
+            <input id="search-input" type="text" placeholder="제목, 시인, 본문 구절 검색..."
+              class="w-full px-3 py-2 text-sm rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-stone-800 bg-stone-50/50" />
+          </div>
+          <div>
+            <label for="poet-filter" class="block text-xs font-medium text-stone-500 mb-1">시인 선택 (11인)</label>
+            <select id="poet-filter" class="w-full px-3 py-2 text-sm rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-stone-800 bg-stone-50/50">
+              <option value="all">전체 시인 (15편)</option>
+            </select>
+          </div>
+          <div>
+            <label for="emotion-filter" class="block text-xs font-medium text-stone-500 mb-1">주도 감정 필터</label>
+            <select id="emotion-filter" class="w-full px-3 py-2 text-sm rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-stone-800 bg-stone-50/50">
+              <option value="all">전체 감정</option>
+            </select>
+          </div>
+          <div class="flex items-end justify-between sm:justify-start gap-3">
+            <label class="inline-flex items-center gap-2 cursor-pointer select-none py-2">
+              <input id="highlight-toggle" type="checkbox" checked class="w-4 h-4 rounded border-stone-300 text-stone-900 focus:ring-stone-800" />
+              <span class="text-sm font-medium text-stone-700">감정 시어 강조</span>
+            </label>
+            <button id="reset-filters-btn" class="px-3 py-2 text-xs font-medium text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-xl transition">
+              초기화
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Two-Column Workspace -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Left Sidebar: Poem List -->
+        <aside class="lg:col-span-4 palace-card rounded-2xl shadow-sm overflow-hidden">
+          <div class="px-4 py-3 border-b-2 border-[#8A6248] flex items-center justify-between bg-[#3E271C] text-[#FAF5EB]">
+            <h2 class="text-sm font-semibold text-[#FAF5EB] font-serif-kr">수록 작품 서가</h2>
+            <span id="poem-count-badge" class="text-xs font-medium px-2 py-0.5 rounded-full bg-stone-200 text-stone-700">15편</span>
+          </div>
+          <div id="poem-list" class="divide-y divide-stone-100 max-h-[300px] lg:max-h-[620px] overflow-y-auto">
+            <!-- Populated by JS -->
+          </div>
+        </aside>
+
+        <!-- Right Main Panel: Selected Poem Analysis -->
+        <div class="lg:col-span-8 space-y-6">
+          <!-- Poem Header & Text Card -->
+          <article class="palace-card rounded-2xl p-5 sm:p-7 shadow-sm">
+            <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-stone-100">
+              <div>
+                <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                  <span id="detail-emotion-badge" class="text-xs font-semibold px-2.5 py-1 rounded-full"></span>
+                  <span id="detail-year" class="text-xs font-medium text-stone-500 bg-stone-100 px-2.5 py-1 rounded-full"></span>
+                  <span id="detail-valence-pill" class="text-xs font-semibold px-2.5 py-1 rounded-full"></span>
+                </div>
+                <h2 id="detail-title" class="text-2xl sm:text-3xl font-bold text-stone-900 font-serif-kr"></h2>
+                <p id="detail-poet" class="text-sm text-stone-600 mt-1"></p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <a id="detail-source-link" href="https://ko.wikisource.org" target="_blank" rel="noopener noreferrer"
+                  class="px-3 py-1.5 text-xs font-medium rounded-xl bg-[#1F5E5B] text-[#FAF5EB] hover:bg-[#174845] border border-[#B08D57]/40 transition">
+                  원문 출처 보기 ↗
+                </a>
+              </div>
+            </div>
+
+            <!-- Legend for Highlighted Keywords -->
+            <div id="emotion-legend" class="flex flex-wrap gap-2 py-3 text-xs border-b border-stone-100">
+              <!-- Populated by JS -->
+            </div>
+
+            <!-- Voice Narration & Kinetic Typography Studio Bar -->
+            <div class="mt-3 p-3.5 rounded-xl bg-[#F5EFE2]/90 border border-[#C8B493] space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2.5">
+                <!-- Left: Voice Playback Controls -->
+                <div class="flex flex-wrap items-center gap-2">
+                  <button id="tts-play-btn" type="button"
+                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-[#1F5E5B] text-[#FAF5EB] hover:bg-[#174845] shadow-sm transition">
+                    <span id="tts-play-icon">▶</span>
+                    <span id="tts-play-label">시 낭독 듣기</span>
+                  </button>
+                  <button id="tts-stop-btn" type="button" disabled
+                    class="px-2.5 py-1.5 rounded-xl text-xs font-medium border border-[#C8B493] bg-white/80 text-stone-700 hover:bg-stone-100 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                    ■ 정지
+                  </button>
+                  <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/75 border border-[#DDD3C0] text-[11px] text-stone-700">
+                    <span>속도</span>
+                    <input id="tts-rate-slider" type="range" min="0.7" max="1.4" step="0.05" value="0.9"
+                      class="w-16 accent-[#1F5E5B] cursor-pointer" />
+                    <strong id="tts-rate-val" class="tabular-nums w-8 text-right">0.9x</strong>
+                  </div>
+                  <select id="tts-voice-select" aria-label="낭독 목소리 선택"
+                    class="max-w-[215px] px-2.5 py-1.5 rounded-xl text-[11px] bg-white/85 border border-[#DDD3C0] text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#1F5E5B]">
+                    <option value="F1">차분한 여성 1 (Supertonic F1)</option>
+                  </select>
+                </div>
+
+                <!-- Right: Living / Kinetic Typography Mode -->
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="text-[11px] font-semibold text-[#5C3D2E] mr-0.5">글자 움직임</span>
+                  <div id="kinetic-mode-group" class="inline-flex flex-wrap items-center gap-1 bg-white/70 border border-[#DDD3C0] p-0.5 rounded-xl">
+                    <button type="button" data-kmode="breathe" class="kmode-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-[#9E2A2B] text-[#FAF5EB] transition">숨결</button>
+                    <button type="button" data-kmode="breeze" class="kmode-btn px-2.5 py-1 rounded-lg text-[11px] font-medium text-stone-700 hover:bg-stone-100 transition">바람결</button>
+                    <button type="button" data-kmode="bloom" class="kmode-btn px-2.5 py-1 rounded-lg text-[11px] font-medium text-stone-700 hover:bg-stone-100 transition">먹빛 피어남</button>
+                    <button type="button" data-kmode="still" class="kmode-btn px-2.5 py-1 rounded-lg text-[11px] font-medium text-stone-700 hover:bg-stone-100 transition">고요히</button>
+                  </div>
+                  <button id="kinetic-replay-btn" type="button" title="글자 등장 효과 다시 보기"
+                    class="px-2.5 py-1 rounded-xl text-[11px] font-medium bg-white/85 border border-[#DDD3C0] text-[#5C3D2E] hover:bg-[#FAF5EB] transition">
+                    ✨ 다시 피우기
+                  </button>
+                </div>
+              </div>
+
+              <!-- Status strip -->
+              <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-600 pt-1 border-t border-[#DDD3C0]/70">
+                <div class="flex items-center gap-2">
+                  <span id="tts-eq" class="eq-bars" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+                  <span id="tts-status-text">각 행 옆의 ▶ 버튼을 누르면 AI 한국어 음성(Supertonic 2)으로 낭독이 시작됩니다.</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <label class="inline-flex items-center gap-1 cursor-pointer select-none">
+                    <span>움직임 세기</span>
+                    <input id="kinetic-amp-slider" type="range" min="0.4" max="1.8" step="0.2" value="1"
+                      class="w-14 accent-[#9E2A2B] cursor-pointer" />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Poem Body -->
+            <div id="detail-poem-body" class="my-5 p-5 sm:p-7 rounded-xl poem-scroll-box space-y-5 font-serif-kr text-base sm:text-[17px] text-[#231F20]">
+              <!-- Populated by JS -->
+            </div>
+
+            <!-- Keyword Inspector Box -->
+            <div id="keyword-inspector" class="mt-2 p-4 rounded-xl bg-stone-50 border border-stone-200/80 text-sm">
+              <p class="text-stone-500 text-xs">
+                💡 시 본문에서 색깔로 강조된 <strong>감정 시어</strong>를 클릭하면 해당 시어의 정서 기여도와 문학적 맥락을 확인할 수 있습니다.
+              </p>
+            </div>
+          </article>
+
+          <!-- 100% Quantitative Emotion Ratio Bar -->
+          <div class="palace-card rounded-2xl p-5 shadow-sm space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 class="text-sm font-bold text-stone-900">정량 감정 비율 (합계 100%) · 사전/해석 가중치 조절</h3>
+                <p class="text-xs text-stone-500">슬라이더로 감정 사전 매칭과 문학적 해석 가중치를 실시간 조절하세요</p>
+              </div>
+              <div class="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-xl px-3 py-1.5">
+                <span class="text-[11px] font-medium text-stone-600">해석 <strong id="weight-interp-pct">70%</strong></span>
+                <input id="lexicon-weight-slider" type="range" min="0" max="100" step="5" value="30" class="w-24 sm:w-32 accent-stone-900 cursor-pointer" />
+                <span class="text-[11px] font-medium text-stone-600">사전 <strong id="weight-lex-pct">30%</strong></span>
+              </div>
+            </div>
+            <div id="detail-ratio-bar" class="h-3.5 w-full rounded-full overflow-hidden flex bg-stone-100"></div>
+            <div id="detail-ratio-pills" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-xs"></div>
+          </div>
+
+          <!-- Charts Row -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- 6-Axis Radar Chart -->
+            <div class="palace-card rounded-2xl p-5 shadow-sm">
+              <div class="mb-3">
+                <h3 class="text-sm font-bold text-stone-900">6대 정서 스펙트럼</h3>
+                <p class="text-xs text-stone-500">작품 내 핵심 정서 분포 (0~100 척도)</p>
+              </div>
+              <div class="relative h-64">
+                <canvas id="radar-chart"></canvas>
+              </div>
+            </div>
+
+            <!-- Stanza Sentiment Arc -->
+            <div class="palace-card rounded-2xl p-5 shadow-sm">
+              <div class="flex items-start justify-between gap-2 mb-3">
+                <div>
+                  <h3 class="text-sm font-bold text-stone-900">행별·연별 감정 흐름 차트</h3>
+                  <p class="text-xs text-stone-500">긍정(+1.0) ↔ 부정(-1.0) 정서 궤적</p>
+                </div>
+                <div class="flex bg-stone-100 p-0.5 rounded-lg text-[11px] font-medium">
+                  <button id="arc-mode-line" class="px-2 py-1 rounded-md bg-white text-stone-900 shadow-sm transition">행별</button>
+                  <button id="arc-mode-stanza" class="px-2 py-1 rounded-md text-stone-600 hover:text-stone-900 transition">연별</button>
+                </div>
+              </div>
+              <div class="relative h-64">
+                <canvas id="arc-chart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Literary Context & Breakdown -->
+          <div class="palace-card rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="text-base font-bold text-stone-900">작품 해석 및 문학적 분석</h3>
+              <span id="detail-theme-badge" class="text-xs font-medium px-2.5 py-1 rounded-lg bg-amber-50 text-amber-900 border border-amber-200/70"></span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              <div class="p-3.5 rounded-xl bg-stone-50 border border-stone-100">
+                <span class="block text-xs font-semibold text-stone-500 mb-1">화자의 어조 (Tone)</span>
+                <span id="detail-tone" class="font-medium text-stone-800"></span>
+              </div>
+              <div class="p-3.5 rounded-xl bg-stone-50 border border-stone-100">
+                <span class="block text-xs font-semibold text-stone-500 mb-1">핵심 심상 (Imagery)</span>
+                <span id="detail-imagery" class="font-medium text-stone-800"></span>
+              </div>
+            </div>
+            <div class="p-4 rounded-xl bg-stone-50/70 border border-stone-100">
+              <span class="block text-xs font-semibold text-stone-500 mb-1.5">작품 해석 (지배 정서·주제·맥락)</span>
+              <p id="detail-summary" class="text-sm leading-relaxed text-stone-700"></p>
+            </div>
+          </div>
+
+          <!-- Keyword-Emotion-Theme Diagram -->
+          <div class="palace-card rounded-2xl p-5 sm:p-6 shadow-sm space-y-3">
+            <div>
+              <h3 class="text-base font-bold text-stone-900">시어–감정–주제 연결 다이어그램</h3>
+              <p class="text-xs text-stone-500">핵심 시어가 어떤 감정 범주를 거쳐 시의 주제로 수렴하는지 구조화한 흐름도입니다.</p>
+            </div>
+            <div id="ket-diagram-container" class="w-full overflow-x-auto"></div>
+          </div>
+
+          <!-- Similar Poems + Generative Emotion Art -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="palace-card rounded-2xl p-5 shadow-sm space-y-3">
+              <div>
+                <h3 class="text-sm font-bold text-stone-900">유사 감성 시 추천 (TOP 3)</h3>
+                <p class="text-xs text-stone-500">6대 감정 벡터 코사인 유사도 기반 추천</p>
+              </div>
+              <div id="similar-poems-list" class="space-y-2.5"></div>
+            </div>
+
+            <div class="palace-card rounded-2xl p-5 shadow-sm space-y-3">
+              <div class="flex items-center justify-between gap-2">
+                <div>
+                  <h3 class="text-sm font-bold text-stone-900">감정 이미지 생성 (제너레이티브 아트)</h3>
+                  <p class="text-xs text-stone-500">시의 감정 비율을 오직 색깔의 비중과 번짐으로만 표현한 추상 이미지</p>
+                </div>
+                <button id="download-art-btn" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-[#1F5E5B] text-[#FAF5EB] hover:bg-[#174845] border border-[#B08D57]/40 transition">
+                  PNG 저장
+                </button>
+              </div>
+              <div class="rounded-xl overflow-hidden border border-stone-200 bg-stone-50">
+                <canvas id="emotion-art-canvas" width="520" height="280" class="w-full h-auto block"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: CORPUS COMPARISON ==================== -->
+    <section id="view-corpus" class="hidden space-y-6">
+      <!-- KPI Row -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="palace-card rounded-2xl p-4 shadow-sm">
+          <span class="text-xs font-medium text-stone-500">분석 작품 수</span>
+          <p class="text-2xl font-bold text-stone-900 mt-1">15편</p>
+          <span class="text-xs text-stone-500">1924 ~ 1945년 발표·유고</span>
+        </div>
+        <div class="palace-card rounded-2xl p-4 shadow-sm">
+          <span class="text-xs font-medium text-stone-500">참여 시인</span>
+          <p class="text-2xl font-bold text-stone-900 mt-1">11인</p>
+          <span class="text-xs text-stone-500">낭만·저항·순수·모더니즘</span>
+        </div>
+        <div class="palace-card rounded-2xl p-4 shadow-sm">
+          <span class="text-xs font-medium text-stone-500">전체 평균 감정가</span>
+          <p id="kpi-avg-valence" class="text-2xl font-bold text-stone-900 mt-1">-</p>
+          <span class="text-xs text-stone-500">-1.0(비애) ~ +1.0(희망)</span>
+        </div>
+        <div class="palace-card rounded-2xl p-4 shadow-sm">
+          <span class="text-xs font-medium text-stone-500">최다 주도 감정</span>
+          <p id="kpi-top-emotion" class="text-2xl font-bold text-stone-900 mt-1">-</p>
+          <span id="kpi-top-emotion-count" class="text-xs text-stone-500">-</span>
+        </div>
+      </div>
+
+      <!-- Stacked Bar & Chronological Trend -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="palace-card rounded-2xl p-5 shadow-sm">
+          <div class="mb-3">
+            <h3 class="text-base font-bold text-stone-900">15편 정서 비중 비교</h3>
+            <p class="text-xs text-stone-500">작품별 6대 감정 축 구성 비율 (누적 막대)</p>
+          </div>
+          <div class="relative h-96">
+            <canvas id="corpus-stacked-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="palace-card rounded-2xl p-5 shadow-sm">
+          <div class="mb-3">
+            <h3 class="text-base font-bold text-stone-900">연대별 감정가 분포 (1924~1945)</h3>
+            <p class="text-xs text-stone-500">발표·창작 연도에 따른 정서 긍정·부정 지수 추이</p>
+          </div>
+          <div class="relative h-96">
+            <canvas id="corpus-era-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- PCA 2D Emotion Map & Heatmap -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-5 palace-card rounded-2xl p-5 shadow-sm">
+          <div class="mb-3">
+            <h3 class="text-base font-bold text-stone-900">감성 지도 (2D PCA 투영)</h3>
+            <p class="text-xs text-stone-500">6차원 감정 벡터를 주성분 분석(PCA)으로 2차원 평면에 배치 · 점 클릭 시 해당 시로 이동</p>
+          </div>
+          <div class="relative h-72">
+            <canvas id="corpus-pca-chart"></canvas>
+          </div>
+          <div id="pca-axis-explanation" class="mt-3 p-3 rounded-xl bg-stone-50 border border-stone-200/80 text-xs text-stone-600 leading-relaxed"></div>
+        </div>
+
+        <div class="lg:col-span-7 palace-card rounded-2xl p-5 shadow-sm overflow-hidden">
+          <div class="mb-3">
+            <h3 class="text-base font-bold text-stone-900">전체 15편 감정 비교 히트맵</h3>
+            <p class="text-xs text-stone-500">행 클릭 시 개별 시 분석으로 이동 (수치: 합계 100% 정규화 비율)</p>
+          </div>
+          <div id="corpus-heatmap-container" class="overflow-x-auto max-h-80 overflow-y-auto"></div>
+        </div>
+      </div>
+
+      <!-- Side-by-Side 2-Poem Comparison -->
+      <div class="palace-card rounded-2xl p-5 sm:p-6 shadow-sm space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-4">
+          <div>
+            <h3 class="text-base font-bold text-stone-900">두 작품 정밀 비교</h3>
+            <p class="text-xs text-stone-500">비교할 두 편의 시를 선택해 감정 스펙트럼을 겹쳐 보세요.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="compare-a" class="px-3 py-1.5 text-sm rounded-xl border border-stone-200 bg-stone-50"></select>
+            <span class="text-xs font-bold text-stone-400">VS</span>
+            <select id="compare-b" class="px-3 py-1.5 text-sm rounded-xl border border-stone-200 bg-stone-50"></select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-6">
+            <div class="relative h-72">
+              <canvas id="compare-radar-chart"></canvas>
+            </div>
+          </div>
+          <div id="compare-table-container" class="lg:col-span-6 overflow-x-auto">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: LIVE SENTIMENT ANALYZER ==================== -->
+    <section id="view-analyzer" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Input Panel -->
+        <div class="lg:col-span-6 palace-card rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 class="text-base font-bold text-stone-900">내 시 분석하기</h2>
+              <p class="text-xs text-stone-500">나만의 시를 직접 짓고 6대 감정 비율·행별 흐름·색채 이미지를 확인해 보세요</p>
+            </div>
+          </div>
+
+          <div>
+            <label for="my-poem-title" class="block text-xs font-medium text-stone-500 mb-1">시 제목</label>
+            <input id="my-poem-title" type="text" placeholder="나만의 시 제목을 지어 보세요..."
+              class="w-full px-3.5 py-2 text-sm font-serif-kr font-semibold rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-stone-800 bg-stone-50/40" />
+          </div>
+
+          <div>
+            <label for="analyzer-input" class="block text-xs font-medium text-stone-500 mb-1">시 본문 (Enter로 행 구분)</label>
+            <textarea id="analyzer-input" rows="12"
+              class="w-full p-4 text-sm font-serif-kr leading-loose rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-stone-800 bg-amber-50/20"
+              placeholder="여기에 나만의 시를 자유롭게 지어 보세요...&#10;줄바꿈(Enter)으로 행을 나누면 행별 감정 흐름과 색채 이미지가 함께 만들어집니다."></textarea>
+          </div>
+
+          <div class="flex items-center justify-between gap-3">
+            <span id="analyzer-char-count" class="text-xs text-stone-500">0자 · 0행</span>
+            <div class="flex gap-2">
+              <button id="analyzer-load-sample-btn" class="px-3.5 py-2 text-xs font-medium rounded-xl border border-stone-200 text-stone-700 hover:bg-stone-100 transition">
+                예시 시 불러오기
+              </button>
+              <button id="analyzer-clear-btn" class="px-3.5 py-2 text-xs font-medium rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-100 transition">
+                지우기
+              </button>
+              <button id="analyzer-run-btn" class="px-4 py-2 text-xs font-semibold rounded-xl bg-[#1F5E5B] text-[#FAF5EB] hover:bg-[#174845] border border-[#B08D57]/40 transition">
+                감정 분석 실행
+              </button>
+            </div>
+          </div>
+
+          <!-- Inline Sample Poem Box inside 내 시 분석하기 -->
+          <div class="mt-4 pt-4 border-t border-stone-200 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200">예시 시</span>
+                <h3 id="sample-poem-title" class="text-sm font-bold text-stone-900 font-serif-kr inline-block ml-1.5"></h3>
+              </div>
+              <button id="sample-to-analyzer-btn" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 transition">
+                입력창에 채우기
+              </button>
+            </div>
+            <div id="sample-poem-body" class="p-3.5 rounded-xl bg-stone-50 border border-stone-200/80 font-serif-kr text-xs sm:text-[13px] text-stone-700 leading-relaxed space-y-2.5"></div>
+          </div>
+        </div>
+
+        <!-- Output Panel -->
+        <div class="lg:col-span-6 space-y-6">
+          <div id="live-notice-box" class="hidden p-3.5 rounded-xl border text-xs sm:text-sm font-medium"></div>
+          <div class="palace-card rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+              <div>
+                <span class="text-xs font-medium text-stone-500">판독된 주도 감정</span>
+                <div class="flex items-center gap-2 mt-1">
+                  <span id="live-dominant-badge" class="text-sm font-bold px-3 py-1 rounded-full">-</span>
+                  <span id="live-valence-text" class="text-sm font-semibold text-stone-700"></span>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-medium text-stone-500">검출된 감성 시어</span>
+                <p id="live-hit-count" class="text-xl font-bold text-stone-900">0개</p>
+              </div>
+            </div>
+
+            <div id="live-context-notes" class="hidden flex-wrap gap-1.5 text-[11px]"></div>
+            <div class="relative h-56">
+              <canvas id="live-bar-chart"></canvas>
+            </div>
+          </div>
+
+          <div class="palace-card rounded-2xl p-5 sm:p-6 shadow-sm space-y-3">
+            <h3 class="text-sm font-bold text-stone-900">행별 감정가 흐름 & 시어 하이라이트</h3>
+            <div class="relative h-44">
+              <canvas id="live-arc-chart"></canvas>
+            </div>
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-semibold text-stone-700">내 시 낭독 &amp; 움직이는 시어 미리보기</span>
+              <div class="flex items-center gap-1.5">
+                <button id="live-tts-play-btn" type="button"
+                  class="px-3 py-1 rounded-lg text-xs font-semibold bg-[#1F5E5B] text-[#FAF5EB] hover:bg-[#174845] transition">
+                  ▶ 내 시 낭독
+                </button>
+                <button id="live-tts-stop-btn" type="button"
+                  class="px-2.5 py-1 rounded-lg text-xs font-medium border border-stone-200 text-stone-600 hover:bg-stone-100 transition">
+                  ■ 정지
+                </button>
+              </div>
+            </div>
+            <div id="live-highlighted-output" class="p-4 rounded-xl bg-stone-50 border border-stone-200 font-serif-kr text-sm leading-loose text-stone-800 max-h-60 overflow-y-auto">
+            </div>
+          </div>
+
+          <div class="palace-card rounded-2xl p-5 sm:p-6 shadow-sm space-y-3">
+            <div>
+              <h3 class="text-sm font-bold text-stone-900">가장 비슷한 감성의 수록 시 (TOP 3)</h3>
+              <p class="text-xs text-stone-500">입력한 시의 감정 비율과 코사인 유사도가 높은 작품입니다. 클릭 시 해당 시로 이동합니다.</p>
+            </div>
+            <div id="live-similar-poems" class="space-y-2">
+              <p class="text-xs text-stone-400">시를 입력하면 유사한 수록 작품을 추천합니다.</p>
+            </div>
+          </div>
+
+          <div class="palace-card rounded-2xl p-5 sm:p-6 shadow-sm space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <h3 class="text-sm font-bold text-stone-900">내 시 감정 이미지 (색채 표현)</h3>
+                <p class="text-xs text-stone-500">입력한 시의 감정 비율을 색깔로만 표현한 이미지</p>
+              </div>
+              <button id="live-download-art-btn" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-[#1F5E5B] text-[#FAF5EB] hover:bg-[#174845] border border-[#B08D57]/40 transition">
+                PNG 저장
+              </button>
+            </div>
+            <div class="rounded-xl overflow-hidden border border-stone-200 bg-stone-50">
+              <canvas id="live-emotion-art-canvas" width="520" height="220" class="w-full h-auto block"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ==================== TAB 4: RUBRIC (CATEGORIES, LEXICON, VALIDATION) ==================== -->
+    <section id="view-rubric" class="hidden space-y-6">
+      <!-- 1. Emotion Categories & Definitions -->
+      <div class="palace-card rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
+        <div>
+          <h2 class="text-base font-bold text-stone-900">1. 감정 범주 및 정의 (6개 범주)</h2>
+          <p class="text-xs text-stone-500">한국 현대시 15편의 정서를 계량화하기 위해 설정한 6개 감정 범주와 한 문장 정의입니다.</p>
+        </div>
+        <div id="rubric-categories-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
+      </div>
+
+      <!-- 2. Lexicon Inventory -->
+      <div class="palace-card rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-base font-bold text-stone-900">2. 감정 사전 (범주별 10개 이상 시어)</h2>
+            <p class="text-xs text-stone-500">각 범주마다 12개 이상의 핵심 시어·어근을 구축하여 행 단위 및 실시간 정량 분석에 사용합니다.</p>
+          </div>
+          <span id="rubric-lexicon-total" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-stone-100 text-stone-700"></span>
+        </div>
+        <div id="rubric-lexicon-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+
+      <!-- 3. Validation Cases -->
+      <div class="palace-card rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
+        <div>
+          <h2 class="text-base font-bold text-stone-900">3. 정량 계산과 문학적 해석의 불일치 검증 (4건)</h2>
+          <p class="text-xs text-stone-500">감정 사전 기반 자동 계산 결과와 실제 문학적 해석이 어긋나는 대표 사례와 원인·개선 방안입니다.</p>
+        </div>
+        <div id="rubric-validation-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="relative z-10 border-t-4 border-[#6B6258] bg-[#E3D9C6] mt-0 shadow-inner">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#6B6258]">
+      <span>한국 현대시 15선 감정 분석 연구실 · 저작권 보호기간이 만료된 퍼블릭 도메인 작품 수록</span>
+      <span>원문 출처: 위키문헌(Wikisource) 및 다빈치 지식지도 공개 원문 기반</span>
+    </div>
+  </footer>
+
+  <script src="./js/data.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>

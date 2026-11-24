@@ -1,0 +1,12 @@
+korean-poetry-emotion-map/
+├── index.html                  # GitHub Pages 메인 웹 애플리케이션
+├── README.md                   # 프로젝트 개요, 15편 목록, 6대 정서 축 정의, AI 도구 활용 내역
+├── css/
+│   └── style.css               # 전통 기와집·한지 테마, 창호 프레임, 키네틱 타이포그래피 CSS
+├── js/
+│   ├── data.js                 # 6대 정서 축 정의, 한국 현대시 15선 데이터, 188개 감성 어휘 사전
+│   └── app.js                  # 감정 분석 엔진, Chart.js 시각화, 3D 파티클, Supertonic-TTS-2 낭독
+├── assets/
+│   └── bg/                     # 계절·정서별 배경 풍경 이미지 (spring.jpg, summer.jpg, autumn.jpg, winter.jpg, night.jpg)
+└── docs/
+    └── standalone.html         # 단일 파일 실행용 백업 아카이브
